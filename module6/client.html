@@ -1,0 +1,390 @@
+<!-- mod6 2.0 -->
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+      <meta charset="UTF-8"> 
+      <!--https://blog.csdn.net/wf134/article/details/78837998-->
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta http-equiv="X-UA-Compatible" content="ie=edge">
+      <title> Multi-room Chat </title>
+      <script src="/socket.io/socket.io.js"></script>
+      <script src="chatserver.js"></script>
+      <script>
+      
+
+      var socketio = io.connect();
+      let b = 0;
+      // show the chat room user join/created
+      // data: currRoomName, all users[], admins[]
+      socketio.on("showRoom",function(data) {
+         const roomName = data['message'][0];
+
+         // update current room info
+         document.getElementById('currRoom').innerHTML = roomName;
+
+         if(roomName == "")   // currUser has no room
+         {
+            document.querySelector('.chatRoom').style.display = 'none';
+         }
+         else
+         {
+            // show chat box
+            document.querySelector('.chatRoom').style.display = 'block';
+            document.getElementById("words").innerHTML = "";
+            // show all users in current room
+            showAllUsersInRoom(data['message'][1], data['message'][2]);
+            
+         }
+      });
+
+      // update users in curr room (in list and in option)
+      // data: users[], admins[]
+      socketio.on("updateRoom",function(data) {
+         document.getElementById('who').innerHTML = '<option value="public">public</option>';
+         // show all users in current room
+         showAllUsersInRoom(data['message'][0], data['message'][1]);
+      });
+
+      socketio.on("displayAllRoom",function(data) {
+         const rooms = data['message'];
+         document.getElementById("allRoomList").innerHTML = "";
+         for(let i = 0; i < rooms.length; i++)
+         {
+            let roomInfo = document.getElementById("allRoomList").appendChild(document.createElement("li"));   
+            roomInfo.innerHTML += rooms[i][0]+": "+rooms[i][1]; // roomName: owner
+         }
+      });
+
+      socketio.on("displayMsg",function(data) {
+         const currUser = document.getElementById('currUser').innerHTML;
+         const msg = data['message'];
+         const sender = msg[0];
+         const words = msg[1];
+
+         if(currUser == sender)
+         {
+            document.getElementById("words").innerHTML += '<div class="btalk"><span>'+ sender +':' + words +'</span></div>' ;
+         }
+         else
+         {
+            document.getElementById("words").innerHTML += '<div class="atalk"><span>'+ sender +':' + words +'</span></div>' ;
+         }
+         document.getElementById("talkwords").value = "";   // clear msg box
+      });
+
+      //https://stackoverflow.com/questions/9596887/display-an-image-in-a-div-with-javascript
+      // data: img, sender
+      socketio.on('userImgs', function(data){
+         const base64Image = data['message'][0];
+         const sender = data['message'][1];
+         let img = document.createElement("IMG");
+         img.src = base64Image;
+         img.style.height = "200px";
+         img.style.width = "300px";
+         const currUser = document.getElementById('currUser').innerHTML;
+         if(currUser == sender)
+         {
+            document.getElementById("words").innerHTML += '<div class="btalk"><span id='+b+'>'+ currUser +':</span></div>' ;
+         }
+         else{
+            document.getElementById("words").innerHTML += '<div class="atalk"><span id='+b+'>'+ currUser +':</span></div>' ;
+         }
+         document.getElementById(b).appendChild(img);
+         b++;
+         
+      });
+
+      socketio.on("logErrorMsg",function(data) {
+         //Append an HR thematic break and the escaped HTML of the new message
+         document.getElementById("logError").innerHTML = data['message'];
+      });
+
+      socketio.on("createErrorMsg",function(data) {
+         //Append an HR thematic break and the escaped HTML of the new message
+         document.getElementById("createError").innerHTML = data['message'];
+         // clear input text
+         document.getElementById("roomName").value = "";
+         document.getElementById('password').value = "";
+      });
+
+      socketio.on("joinErrorMsg",function(data) {
+         //Append an HR thematic break and the escaped HTML of the new message
+         document.getElementById("joinError").innerHTML = data['message'];
+         // clear input text
+         document.getElementById("joinRoom").value = "";
+         document.getElementById('joinPW').value = "";
+      });
+
+      socketio.on("logIn",function(data) {
+         document.querySelector('.roomList').style.display = 'block';
+         document.querySelector('.logIn').style.display = 'none';
+         document.getElementById("currUser").innerHTML = data['message'];
+
+         // ask to display all current rooms
+         socketio.emit("displayAllRooms", {message:""});
+      });
+
+      // https://blog.csdn.net/wf134/article/details/78837998
+      function sendMessage(){
+         //const Words = document.getElementById("words");
+         const room = document.getElementById("currRoom").innerHTML; 
+         const who = document.getElementById("who").value;
+         const words = document.getElementById("talkwords").value;
+         const sender = document.getElementById("currUser").innerHTML;
+         const msg = [words, who, room, sender]
+         socketio.emit("message_to_server", {message:msg});
+      }
+
+       //sending images
+      // reference: http://blog.marcon.me/post/31143865164/send-images-through-websockets
+      function sendImg()
+      {
+         
+         let file = document.getElementById("imagefile").files[0];
+         reader = new FileReader();
+         const sender = document.getElementById("currUser").innerHTML;
+         const who = document.getElementById("who").value;
+         const room = document.getElementById("currRoom").innerHTML; 
+         //When the file has been read...
+         reader.onload = function(event){
+               socketio.emit('userImg', {message:[event.target.result,sender,who,room]});
+            };
+            //And now, read the image and base64
+            reader.readAsDataURL(file);
+      }
+
+      function addUser()
+      {
+        let username = document.getElementById("userName").value;
+        socketio.emit("addUser", {message: username});
+      }
+
+      function createRoom()
+      {
+        let name = document.getElementById("roomName").value;
+        let password = document.getElementById('password').value;
+        let username = document.getElementById('currUser').innerHTML;
+        let currRoom = document.getElementById('currRoom').innerHTML;
+        socketio.emit("createRoom", {message:[name, password, username, currRoom]});
+      }
+
+      function joinRoom()
+      {
+         const roomName = document.getElementById("joinRoom").value;
+         const password = document.getElementById('joinPW').value;
+         const currUser = document.getElementById('currUser').innerHTML;
+         const currRoom = document.getElementById('currRoom').innerHTML;
+         socketio.emit("joinRoom", {message:[roomName, password, currUser, currRoom]});
+      }
+
+      function kick(person)
+      {
+         let roomName = document.getElementById('currRoom').innerHTML;
+         socketio.emit("kick", {message:[roomName, person]});
+      }
+
+      function ban(person)
+      {
+         let roomName = document.getElementById('currRoom').innerHTML;
+         socketio.emit("ban", {message:[roomName, person]});
+      }
+
+      function addAdmin(person)
+      {
+         let roomName = document.getElementById('currRoom').innerHTML;
+         socketio.emit("addAdmin", {message:[roomName, person]});
+      }
+
+      function removeAdmin(person)
+      {
+         let roomName = document.getElementById('currRoom').innerHTML;
+         socketio.emit("removeAdmin", {message:[roomName, person]});
+      }
+
+      function showAllUsersInRoom(users, admins)
+      {
+         const currUser = document.getElementById('currUser').innerHTML;
+         const owner = admins[0];
+         const currUserAdminIndex = admins.indexOf(currUser); // is currUser in admin?
+         let user = "";
+         let isUserAdminIndex = -1;
+         document.getElementById("usersInRoom").innerHTML = "";
+         for(let i = 0; i < users.length; i++)
+         {
+            user = users[i];
+            isUserAdminIndex = admins.indexOf(user);
+            if(user != currUser) // add option(person choice) for private msg 
+            {
+               document.getElementById("who").innerHTML += '<option value="' + user + '">' + user + '</option>';
+               
+            }
+            if((currUser == owner) && (currUser != user))   // owner: kick, ban, add/remove admin
+            {
+               if(isUserAdminIndex > -1)  // user is admin --> owner: kick / ban / removeAdmin
+               {
+                  document.getElementById("usersInRoom").innerHTML += "<li>"+ user +'    <button onclick="kick(\'' + user + '\')">Kick</button>     <button onclick="ban(\'' + user + '\')">Ban</button>     <button onclick="removeAdmin(\'' + user + '\')">Remove Admin</button></li>';
+               }
+               else  // user is not admin --> owner: kick / ban / addAdmin
+               {
+                  document.getElementById("usersInRoom").innerHTML += "<li>"+ user +'    <button onclick="kick(\'' + user + '\')">Kick</button>     <button onclick="ban(\'' + user + '\')">Ban</button>     <button onclick="addAdmin(\'' + user + '\')">Add Admin</button></li>';
+               }
+            }
+            // currUser: kick/ban non-owners
+            else if((currUserAdminIndex > -1) && (isUserAdminIndex == -1)) // currUser is admin and user is not admin
+            {
+               document.getElementById("usersInRoom").innerHTML += "<li>"+ user +'    <button onclick="kick(\'' + user + '\')">Kick</button>     <button onclick="ban(\'' + user + '\')">Ban</button></li>';
+            }
+            else // non-owner users is able to see all users in curr room
+            {  
+               document.getElementById("usersInRoom").innerHTML += "<li>"+ user +"</li>";
+            }  
+         }
+      }
+
+      </script>
+
+      <style>
+         #logIn
+         {
+            display: block;
+         }
+
+         #roomList
+         {
+            display: none;
+         }
+
+         .chatRoom
+         {
+            display: none;
+            margin-top: 50px;
+         }
+
+         .userList
+         {
+            float: right;
+            width:500px;
+         }
+
+         /* https://blog.csdn.net/wf134/article/details/78837998 */
+         .talk_con{
+            width:600px;
+            height:600px;
+            border:1px solid #666;
+            float: left;
+            background:#f9f9f9;
+        }
+        .talk_show{
+            width:580px;
+            height:420px;
+            border:1px solid #666;
+            background:#fff;
+            margin:10px auto 0;
+            overflow:auto;
+        }
+        .talk_input{
+            width:580px;
+            margin:10px auto 0;
+        }
+        .whotalk{
+            width:80px;
+            height:30px;
+            float:left;
+            outline:none;
+        }
+        .talk_word{
+            width:420px;
+            height:26px;
+            padding:0px;
+            float:left;
+            margin-left:10px;
+            outline:none;
+            text-indent:10px;
+        }        
+        .talk_sub{
+            width:56px;
+            height:30px;
+            float:left;
+            margin-left:10px;
+        }
+        .atalk{
+           margin:10px; 
+        }
+        .atalk span{
+            display:inline-block;
+            background:#0181cc;
+            border-radius:10px;
+            color:#fff;
+            padding:5px 10px;
+        }
+        .btalk{
+            margin:10px;
+            text-align:right;
+        }
+        .btalk span{
+            display:inline-block;
+            background:#ef8201;
+            border-radius:10px;
+            color:#fff;
+            padding:5px 10px;
+        }
+
+      </style>
+   </head>
+   <body>
+      <!--log in-->
+      <div class="logIn" id="logIn">
+         <p id="logError"></p>
+         Username: <input type = "text" id = "userName"/>
+         <button onclick="addUser()">Log In</button>
+      </div>
+
+      <div class="roomList" id="roomList">
+         <h1>Hello <label id="currUser"></label> !</h1>
+         <h2>All Available Rooms</h2>
+         <ul id="allRoomList"></ul> <!--load all rooms-->
+         <div>
+            <span style="float: left;">
+               <b>Create a Room </b><br /><br /> <!--Create room by given name-->
+               Leave blank in password if you want to create a public chat room.<br /><br />
+               <label id="createError"></label><br /><br />
+               Room Name: <input type = "text" id = "roomName"/><br /><br />
+               Password: <input type = "password" id = "password"/><br /><br />
+               <button onclick="createRoom()">Create</button><br /><br />
+            </span>
+
+            <span style="float: right;">
+               <b>Join a Room </b><br /><br />
+               Leave blank in password if you believe you're joining a public chat room.<br /><br />
+               <label id="joinError"></label><br /><br />
+               Room Name: <input type = "text" id = "joinRoom"/><br /><br />
+               Password: <input type = "password" id = "joinPW"/><br /><br />
+               <button onclick="joinRoom()">Join</button><br /><br />
+            </span>
+         </div> 
+         <br /><br /><br /><br /><br /><br /><br /><br />
+         <!-- chat box: https://blog.csdn.net/wf134/article/details/78837998-->
+         <div class="chatRoom">
+            <div class="talk_con">
+               <H3 style="text-align:center;">Current Room: <label id="currRoom"></label></H3>
+               <div class="talk_show" id="words"></div>
+               <div class="talk_input">
+                  <select class="whotalk" id="who">
+                     <option value="public">public</option>
+                  </select>
+                  <input type="text" class="talk_word" id="talkwords">
+                  <input type="button" value="Send" class="talk_sub" onclick="sendMessage()"> 
+                  <br /> <br /><br />
+                  <label>Send Image :<input type="file" id="imagefile" accept="image/*"></label>  |  
+                  <button onclick="sendImg()"> Send Image</button>
+               </div>
+            </div>
+
+            <div class="userList">
+               <H3 style="text-align:center;">Current Users in the Room </H3><ul id="usersInRoom"></ul>
+            </div>
+         </div>
+         <br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br /><br />
+      </div>   
+   </body>
+</html>
