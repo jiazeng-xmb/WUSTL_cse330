@@ -1,7 +1,10 @@
 # CSE330
 This is an online chat room which created by using Node.JS and Socket.IO.
+
 Here, users can create privete and public chat rooms, join an arbitrary chat room.
+
 A password is needed when creating and joining a private chat room.
+
 Creators of chat rooms can temporarily kick others out of the room and permanently ban users from joining that particular room.
 
 466731
