@@ -1,4 +1,9 @@
 # CSE330
+This is a News Website.
+Users are able to register and login to post their own stories. They can go to their account and do anything to their own stories.
+Users can also like or comment on other's stories.
+Guests are also able to view and like other's stories.
+
 466300 (Jia Zeng)
 
 466731 (Nicole Wang)
