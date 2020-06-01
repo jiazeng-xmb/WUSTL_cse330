@@ -1,0 +1,159 @@
+<!DOCTYPE html> 
+<!--reference to https://www.youtube.com/watch?v=CuXl6D4e9_k-->
+<!--reference to https://www.youtube.com/watch?v=Swlp4SGzVNo-->
+<!--reference to https://www.jb51.net/article/88600.htm-->
+<html lang="en">
+<head> 
+        <meta charset="UTF-8">
+        <title> Calendar </title>
+        <link rel="stylesheet" type="text/css" href="calendar.css">
+</head>
+
+<body>
+<input type='hidden' name="token" id="token">   <!--CSRF token-->
+<!--reference to https://www.youtube.com/watch?v=gLWIYk0Sd38-->
+<!-- log in-->
+<div class='signInModal'>
+    <div class="modal-content">
+        <div class="close1">+</div>
+        <span id="signInError" class="error"></span><br />
+        Username: <input type="text" id="usernameSignIn"  placeholder="Username"> <br /><br />
+        Password: <input type="password" id="passwordSignIn" placeholder="Password"> <br /><br />
+        <button type="Submit" id="signInBn">Login</button> <br /><br />
+        <button type="button" name="signUp">Sign up</button>
+    </div>
+</div>
+<!-- sign up -->
+<div class='signUpModal'>
+    <div class="modal-content">
+        <div class="close2">+</div>
+        <span id="signUpError" class="error"></span><br />
+        Username: <input type="text" id="usernameSignUp" placeholder="Username"> <br /><br />
+        Password: <input type="password" id="passwordSignUp" placeholder="Password"> <br /><br />
+        Retype Password: <input type="password" id="rpasswordSignUp" placeholder="Retype Password"> <br /><br />
+        <button type="Submit" id="signUpBn">Sign Up</button>
+    </div>
+</div>
+
+<!-- share calendar -->
+<div class='shareModal' id="shareModal">
+    <div class="model-content">
+        <div class="close3">+</div>
+            Enter username for the person you want to share your calendar with(one username per line): <br/> <br />
+            <textarea id='friends' rows='20' cols='100'></textarea><br /><br />
+            <button type='submit' id="shareBn">Submit</button>
+    </div>
+</div>
+
+<div id="calendar" class="calendar"></div>
+<div id="alert" style="margin-left: 45%"></div>
+    <!--Add Event-->
+    <div class="form-popup" id="eventForm">
+    <div class="form-container" id = "form-container" >
+      <h1>Add Event</h1>
+      Event Title:    <input class="form-control" type="text" name="eventTitle" id="eventTitle" placeholder="Enter Title">
+      <br/><br/>
+      Date:   <label class="form-control" id="eventDate"></label>
+      <br/><br/>
+      Time:   <select class="form-control" name="eventTime" id="eventTime">
+          <option value="0">00:00</option>
+          <option value="1">01:00</option>
+          <option value="2">02:00</option>
+          <option value="3">03:00</option>
+          <option value="4">04:00</option>
+          <option value="5">05:00</option>
+          <option value="6">06:00</option>
+          <option value="7">07:00</option>
+          <option value="8">08:00</option>
+          <option value="9">09:00</option>
+          <option value="10">10:00</option>
+          <option value="11">11:00</option>
+          <option value="12">12:00</option>
+          <option value="13">13:00</option>
+          <option value="14">14:00</option>
+          <option value="15">15:00</option>
+          <option value="16">16:00</option>
+          <option value="17">17:00</option>
+          <option value="18">18:00</option>
+          <option value="19">19:00</option>
+          <option value="20">20:00</option>
+          <option value="21">21:00</option>
+          <option value="22">22:00</option>
+          <option value="23">23:00</option>
+          </select>
+      <br/><br/>
+      Category: <select class="form-control" name="eventCategory" id="eventCategory">
+                <option value="0">Study</option>
+                <option value="1">Work</option>
+                <option value="2">Sport</option>
+                <option value="3">Date</option>
+                <option value="4">Travel</option>
+                <option value="5">Family</option>
+                <option value="6">Fun</option>
+                <option value="7">Other</option>
+                </select>
+      <br/><br/>
+      Invite friends by username (one username per line): <br/><br/><textarea id='addGroup' rows='7' cols='40'></textarea><br /><br />
+      <br/>
+      <button type="submit" class="btn" id = "addEvent">Add</button>
+      <button type="submit" class="btn cancel" id="closeForm">Cancel</button>
+      </div>
+    </div>
+    <!--Edit Event-->
+    <div class="form-popup" id="editEventForm">
+        <div class="form-container" id = "form-container2" >
+            <h1>Edit Event</h1>
+            Event Title:    <input class="form-control" type="text" name="editEventTitle" id="editEventTitle" placeholder="Enter Title">
+            <br/><br/>
+            Date:   <label class="form-control" id="editEventDate"></label>
+            <input id='changeDate' type='date'>
+            <br/><br/>
+            Time:   <select class="form-control" name="editEventTime" id="editEventTime">
+                <option value="0">00:00</option>
+                <option value="1">01:00</option>
+                <option value="2">02:00</option>
+                <option value="3">03:00</option>
+                <option value="4">04:00</option>
+                <option value="5">05:00</option>
+                <option value="6">06:00</option>
+                <option value="7">07:00</option>
+                <option value="8">08:00</option>
+                <option value="9">09:00</option>
+                <option value="10">10:00</option>
+                <option value="11">11:00</option>
+                <option value="12">12:00</option>
+                <option value="13">13:00</option>
+                <option value="14">14:00</option>
+                <option value="15">15:00</option>
+                <option value="16">16:00</option>
+                <option value="17">17:00</option>
+                <option value="18">18:00</option>
+                <option value="19">19:00</option>
+                <option value="20">20:00</option>
+                <option value="21">21:00</option>
+                <option value="22">22:00</option>
+                <option value="23">23:00</option>
+                </select>
+            <br/><br/>
+            Category: <select class="form-control" name="eventCategory" id="editEventCategory">
+                    <option value="0">Study</option>
+                    <option value="1">Work</option>
+                    <option value="2">Sport</option>
+                    <option value="3">Date</option>
+                    <option value="4">Travel</option>
+                    <option value="5">Family</option>
+                    <option value="6">Fun</option>
+                    <option value="7">Other</option>
+                    </select>
+            <br/><br/><br/>
+            <button type="submit" class="btn" id = "editEvent">Edit</button>
+            <button type="submit" class="btn" id = "deleteEvent">Delete</button>
+            <button type="submit" class="btn cancel" id="editCloseForm">Cancel</button>
+        
+        </div>
+    </div>
+
+<!--js files-->
+<script src="calendar.js"></script>
+</body>
+</html>
