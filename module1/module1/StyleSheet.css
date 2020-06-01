@@ -1,0 +1,9 @@
+body {background: white;}
+h1 {color:red; 
+	text-align:center; 
+	font-family:arial,courier; 
+	font-weight:bold;
+	font-size:40px;}
+
+img {max-height:480px; 
+ max-width:640px; }
