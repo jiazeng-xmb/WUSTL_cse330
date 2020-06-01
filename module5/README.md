@@ -1,4 +1,10 @@
 # CSE330
+This is a Calendar management website.
+Here Events can be added, modified, and deleted.
+All events have a title, date, and time.
+Users can log into the site, and they cannot view or manipulate events associated with other users.
+Users can also tag an event, share events with their friends and create group events with their friends.
+
 466300 (Jia Zeng)
 466731 (Nicole Wang)
 
