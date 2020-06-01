@@ -1,4 +1,8 @@
 # CSE330
+This is a File shareing website.
+Here users can create accounts and upload or download files.
+They are also able to add other users as friends and edit the friends' files.
+
 466300
 
 466731
